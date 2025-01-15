@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+   <PropertyGroup>
+      <AssemblyName>Aprico.Ddd.Abstractions.Tests</AssemblyName>
+      <RootNamespace>Aprico</RootNamespace>
+      <Description>Aprico Consultants' Distributed Application Libraries: Unit Tests for Domain-Driven Design Basic Abstractions.</Description>
+      <IsPackable>false</IsPackable>
+   </PropertyGroup>
+
+   <ItemGroup>
+      <ProjectReference Include="..\Aprico.Ddd.Abstractions\Aprico.Ddd.Abstractions.csproj"/>
+   </ItemGroup>
+
+   <ItemGroup>
+      <PackageReference Include="coverlet.collector">
+         <PrivateAssets>all</PrivateAssets>
+         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="FluentAssertions"/>
+      <PackageReference Include="Microsoft.NET.Test.Sdk"/>
+      <PackageReference Include="Moq"/>
+      <PackageReference Include="xunit"/>
+      <PackageReference Include="xunit.analyzers">
+         <PrivateAssets>all</PrivateAssets>
+         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="xunit.runner.visualstudio">
+         <PrivateAssets>all</PrivateAssets>
+         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+   </ItemGroup>
+
+</Project>
