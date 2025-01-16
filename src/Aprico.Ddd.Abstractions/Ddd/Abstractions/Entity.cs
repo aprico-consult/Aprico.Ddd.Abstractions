@@ -1,0 +1,222 @@
+#region region Copyright & License
+
+// Copyright © 2024 - 2025 Aprico Consultants
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http://www.apache.org/licenses/LICENSE-2.0
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#endregion
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Linq;
+using System.Text;
+
+namespace Aprico.Ddd.Abstractions;
+
+/// <summary>Represents the base class for all entities in a domain model.</summary>
+/// <remarks>
+/// The <see cref="Entity"/> abstract class serves as the foundation for all domain entities. It provides core
+/// functionality for handling domain events, allowing entities to track and manage events related to business logic changes.
+/// </remarks>
+/// <seealso cref="IDomainEvent"/>
+[DebuggerDisplay($"{{{nameof(ToString)}(\"d\")}}")]
+public abstract class Entity : IFormattable
+{
+	#region Nested Type: FormatStrings
+
+	/// <summary>
+	/// Contains predefined format strings and validation logic specific to the <see cref="Entity"/> class and its derived
+	/// types.
+	/// </summary>
+	/// <remarks>
+	/// The <c>FormatStrings</c> nested class provides a centralized set of format strings tailored for formatting entities'
+	/// data consistently. It also ensures that only valid format strings are used through validation logic.
+	/// </remarks>
+	[SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores")]
+	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Public API.")]
+	[SuppressMessage("ReSharper", "UnusedMember.Global")]
+	protected internal static class FormatStrings
+	{
+		internal static string EnsureNotNullOrEmptyOrValidate(string? format)
+		{
+			if (string.IsNullOrEmpty(format))
+				format = DEFAULT;
+			else
+				ThrowIfInvalid(format);
+			return format;
+		}
+
+		public static bool IsCustom(string format)
+		{
+			return format is CUSTOM_SHORT or CUSTOM_LONG;
+		}
+
+		public static bool IsGeneral(string format)
+		{
+			return format is GENERAL_SHORT or GENERAL_LONG;
+		}
+
+		public static bool IsDebug(string format)
+		{
+			return format is DEBUG_SHORT or DEBUG_LONG;
+		}
+
+		public static bool IsLong(string format)
+		{
+			return format is GENERAL_LONG or CUSTOM_LONG or DEBUG_LONG;
+		}
+
+		public static bool IsShort(string format)
+		{
+			return format is GENERAL_SHORT or CUSTOM_SHORT or DEBUG_SHORT;
+		}
+
+		private static void ThrowIfInvalid(string format)
+		{
+			if (format is not (GENERAL_SHORT or GENERAL_LONG or CUSTOM_SHORT or CUSTOM_LONG or DEBUG_SHORT or DEBUG_LONG))
+				throw new FormatException(
+					string.Format(
+						CultureInfo.InvariantCulture,
+						"The format string '{0}' is invalid. Supported formats are '{1}', '{2}', '{3}', '{4}', '{5}', and '{6}'.",
+						format,
+						CUSTOM_SHORT,
+						CUSTOM_LONG,
+						GENERAL_SHORT,
+						GENERAL_LONG,
+						DEBUG_SHORT,
+						DEBUG_LONG));
+		}
+
+		/// <summary>Represents a customized long format string for entities, providing detailed information about the entity.</summary>
+		public const string CUSTOM_LONG = "C";
+
+		/// <summary>Represents a customized short format string for entities, used for concise entity summaries.</summary>
+		public const string CUSTOM_SHORT = "c";
+
+		/// <summary>Represents the long debug format string, typically including detailed diagnostic information.</summary>
+		public const string DEBUG_LONG = "D";
+
+		/// <summary>Represents the short debug format string, used for concise debugging-related information.</summary>
+		public const string DEBUG_SHORT = "d";
+
+		/// <summary>
+		/// Represents the default format string for entities, pointing to <see cref="GENERAL_SHORT"/>. This is used when no
+		/// specific format string is provided.
+		/// </summary>
+		public const string DEFAULT = GENERAL_SHORT;
+
+		/// <summary>Represents a detailed general format string for entities, including more exhaustive information.</summary>
+		public const string GENERAL_LONG = "G";
+
+		/// <summary>Represents a short general format string for entities, typically used for concise representations.</summary>
+		public const string GENERAL_SHORT = "g";
+	}
+
+	#endregion
+
+	#region IFormattable Members
+
+	/// <inheritdoc/>
+	public virtual string ToString(string? format, IFormatProvider? formatProvider = null)
+	{
+		format = FormatStrings.EnsureNotNullOrEmptyOrValidate(format);
+		// ensure consistent output for debug
+		if (FormatStrings.IsDebug(format)) formatProvider = CultureInfo.InvariantCulture;
+
+		var stringBuilder = new StringBuilder();
+		// @formatter:wrap_chained_method_calls wrap_if_long
+		if (FormatStrings.IsLong(format)) stringBuilder.Append(formatProvider, $"{GetType().Name} ");
+		// @formatter:wrap_chained_method_calls restore
+		stringBuilder.Append("{ ");
+		if (PrintMembers(stringBuilder, format, formatProvider)) stringBuilder.Append(value: ' ');
+		stringBuilder.Append(value: '}');
+		return stringBuilder.ToString();
+	}
+
+	#endregion
+
+	#region Base Class Member Overrides
+
+	/// <inheritdoc/>
+	[SuppressMessage("Globalization", "CA1305:Specify IFormatProvider")]
+	public override string ToString()
+	{
+		return ToString(string.Empty);
+	}
+
+	#endregion
+
+	/// <summary>Gets a collection of domain events that have occurred on the entity.</summary>
+	public virtual IEnumerable<IDomainEvent> Events => _events ?? Enumerable.Empty<IDomainEvent>();
+
+	/// <summary>Adds a domain event to the entity.</summary>
+	/// <param name="domainEvent">The domain event to add.</param>
+	// TODO raise is not intention revealing
+	protected virtual void Raise<T>(T domainEvent)
+		where T : IDomainEvent
+	{
+		(_events ??= new List<IDomainEvent>(capacity: 1)).Add(domainEvent);
+	}
+
+	/// <summary>Clears the domain events after they have been handled or persisted.</summary>
+	protected internal virtual void ClearEvents()
+	{
+		_events?.Clear();
+	}
+
+	/// <summary>
+	/// Generates a string representation of the current instance's fields and properties by appending their names and values
+	/// to the specified <see cref="System.Text.StringBuilder"/>.
+	/// </summary>
+	/// <param name="stringBuilder">
+	/// The <see cref="System.Text.StringBuilder"/> to which the members will be appended. Must not be
+	/// <c>null</c>.
+	/// </param>
+	/// <param name="format">
+	/// A string that defines the format to be applied to the members. It specifies what information is included
+	/// and how the fields and properties of the object are represented as a string. The value should correspond to one of the
+	/// predefined format strings, such as <c>GENERAL_LONG</c> or <c>ENTITY_SHORT</c>, provided by <see cref="Entity.FormatStrings"/>.
+	/// </param>
+	/// <param name="formatProvider">
+	/// The <see cref="IFormatProvider"/> that supplies culture-specific formatting information. If
+	/// <c>null</c>, the formatting uses the default culture information.
+	/// </param>
+	/// <returns>
+	/// <c>true</c> if members were successfully appended to the <paramref name="stringBuilder"/>; otherwise, <c>false</c>,
+	/// typically indicating no members are present.
+	/// </returns>
+	/// <remarks>
+	/// The <c>PrintMembers</c> method is commonly overridden to customize the string representation of an object's data for
+	/// debugging or logging purposes.
+	/// </remarks>
+	/// <example>
+	/// Example of overriding <c>PrintMembers</c>: <code>
+	/// protected override bool PrintMembers(StringBuilder builder)
+	/// {
+	///     builder.Append("Id = ").Append(Id);
+	///     builder.Append(", Name = ").Append(Name);
+	///     return true;
+	/// }
+	/// </code>
+	/// </example>
+	/// <seealso cref="Entity.FormatStrings"/>
+	[SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
+	[SuppressMessage("ReSharper", "GrammarMistakeInComment")]
+	[SuppressMessage("ReSharper", "UnusedParameter.Global")]
+	protected internal abstract bool PrintMembers(StringBuilder stringBuilder, string format, IFormatProvider? formatProvider);
+
+	private List<IDomainEvent>? _events;
+}

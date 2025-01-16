@@ -14,7 +14,7 @@
 
 ## Overview
 
-Aprico Consultants' Distributed Application Libraries: Domain-Driven Design Basic Abstractions
+Aprico Consultants' Distributed Application Libraries: Domain-Driven Design Basic Abstractions.
 
 <!-- github + badges -->
 

@@ -1,0 +1,178 @@
+#region region Copyright & License
+
+// Copyright © 2024 - 2025 Aprico Consultants
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#endregion
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Runtime.CompilerServices;
+using System.Text;
+using Moq;
+
+namespace Aprico.Ddd.Abstractions;
+
+public abstract class EntityFixture
+{
+	#region Nested Type: FormatStringsFixture
+
+	public class FormatStringsFixture : EntityFixture
+	{
+		[Theory]
+		[InlineData("")]
+		[InlineData(Entity.FormatStrings.DEFAULT)]
+		[InlineData(null!)]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void DefaultsToGeneralShortIfNullOrEmpty(string? format)
+		{
+			Entity.FormatStrings.EnsureNotNullOrEmptyOrValidate(format)
+				.Should()
+				.Be(Entity.FormatStrings.GENERAL_SHORT);
+		}
+
+		[Theory]
+		[InlineData(Entity.FormatStrings.CUSTOM_LONG)]
+		[InlineData(Entity.FormatStrings.CUSTOM_SHORT)]
+		[InlineData(Entity.FormatStrings.DEBUG_LONG)]
+		[InlineData(Entity.FormatStrings.DEBUG_SHORT)]
+		[InlineData(Entity.FormatStrings.GENERAL_LONG)]
+		[InlineData(Entity.FormatStrings.GENERAL_SHORT)]
+		public void EnsureNotNullOrEmptyOrValidateReturnsFormatIfValid(string format)
+		{
+			Entity.FormatStrings.EnsureNotNullOrEmptyOrValidate(format)
+				.Should()
+				.Be(format);
+		}
+
+		[Theory]
+		[InlineData("x")]
+		[InlineData("z")]
+		public void EnsureNotNullOrEmptyOrValidateThrowsIfInvalid(string format)
+		{
+			Invoking(() => Entity.FormatStrings.EnsureNotNullOrEmptyOrValidate(format))
+				.Should()
+				.Throw<FormatException>();
+		}
+	}
+
+	#endregion
+
+	#region Nested Type: HashCode
+
+	public class HashCode : EntityFixture
+	{
+		[Fact]
+		public void GetHashCodeReturnsBaseObjectHasCodeIfEntityIsNew()
+		{
+			var sut = new DummyEntity();
+			var hashCode = RuntimeHelpers.GetHashCode(sut);
+
+			sut.IsNew.Should()
+				.BeTrue();
+			sut.GetHashCode()
+				.Should()
+				.Be(hashCode);
+			// hash code is stable
+			sut.GetHashCode()
+				.Should()
+				.Be(hashCode);
+		}
+
+		[Fact]
+		public void GetHashCodeReturnsIdHasCodeIfEntityIsNotNew()
+		{
+			var id = Guid.NewGuid();
+			var sut = new DummyEntity(id);
+			var hashCode = id.GetHashCode();
+
+			sut.IsNew.Should()
+				.BeFalse();
+			sut.GetHashCode()
+				.Should()
+				.Be(hashCode);
+			// hash code is stable
+			sut.GetHashCode()
+				.Should()
+				.Be(hashCode);
+		}
+
+		private sealed class DummyEntity : Entity<Guid>
+		{
+			public DummyEntity() { }
+
+			public DummyEntity(Guid guid) : base(guid) { }
+		}
+	}
+
+	#endregion
+
+	#region Nested Type: ToStringFormatting
+
+	public class ToStringFormatting : EntityFixture
+	{
+		[Fact]
+		public void FormattableDelegatesToPrintMembersWithFormatProvider()
+		{
+			var sut = new Mock<Entity> {
+				CallBase = true
+			};
+
+			_ = sut.Object.ToString("", CultureInfo.CurrentCulture);
+
+			sut.Verify(static m => m.PrintMembers(It.IsAny<StringBuilder>(), Entity.FormatStrings.GENERAL_SHORT, CultureInfo.CurrentCulture), Times.Once());
+		}
+
+		[Fact]
+		public void FormattableDelegatesToPrintMembersWithNoFormatProvider()
+		{
+			var sut = new Mock<Entity> {
+				CallBase = true
+			};
+
+			_ = sut.Object.ToString("");
+
+			sut.Verify(static m => m.PrintMembers(It.IsAny<StringBuilder>(), Entity.FormatStrings.GENERAL_SHORT, null), Times.Once());
+		}
+
+		[Theory]
+		[InlineData(Entity.FormatStrings.DEBUG_LONG)]
+		[InlineData(Entity.FormatStrings.DEBUG_SHORT)]
+		public void FormattableForcesFormatProviderToInvariantCultureForDebugFormats(string format)
+		{
+			var sut = new Mock<Entity> {
+				CallBase = true
+			};
+
+			_ = sut.Object.ToString(format);
+
+			sut.Verify(m => m.PrintMembers(It.IsAny<StringBuilder>(), format, CultureInfo.InvariantCulture), Times.Once());
+		}
+
+		[Fact]
+		public void ToStringDelegatesToFormattableWithEmptyFormatAndNullFormatProvider()
+		{
+			var sut = new Mock<Entity> {
+				CallBase = true
+			};
+
+			_ = sut.Object.ToString();
+
+			sut.Verify(static m => m.ToString(string.Empty, null), Times.Once());
+		}
+	}
+
+	#endregion
+}

@@ -26,6 +26,12 @@
 
    <ItemGroup>
       <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+      <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+   </ItemGroup>
+
+   <ItemGroup>
+      <PackageReference Include="Aprico.NodaTime"/>
+      <PackageReference Include="NodaTime"/>
    </ItemGroup>
 
 </Project>
