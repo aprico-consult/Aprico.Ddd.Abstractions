@@ -30,6 +30,8 @@ namespace Aprico.Ddd.Abstractions;
 /// side effects, etc.).
 /// </remarks>
 [SuppressMessage("Naming", "CA1711:Identifiers should not have incorrect suffix")]
+[SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public abstraction.")]
+[SuppressMessage("ReSharper", "UnusedParameter.Global", Justification = "Public abstraction.")]
 public interface IDomainEventHandler<in T>
 	where T : IDomainEvent
 {

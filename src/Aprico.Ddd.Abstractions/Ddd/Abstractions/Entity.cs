@@ -1,13 +1,13 @@
 #region region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,13 +26,33 @@ using System.Text;
 
 namespace Aprico.Ddd.Abstractions;
 
-/// <summary>Represents the base class for all entities in a domain model.</summary>
+/// <summary>
+/// This abstract class acts as a fundamental building block in domain-driven design, providing event management
+/// capabilities and state representation for derived domain entities.
+/// </summary>
 /// <remarks>
-/// The <see cref="Entity"/> abstract class serves as the foundation for all domain entities. It provides core
-/// functionality for handling domain events, allowing entities to track and manage events related to business logic changes.
+/// <para>
+/// Domain events are not dispatched to handlers immediately when raised, as doing so can lead to unpredictable side effects
+/// and complicate testing. Instead, domain events are recorded, <see cref="EnqueueDomainEvent{T}"/>>, within the entity and
+/// dispatched later. This approach decouples the domain model from immediate side effects, making it easier to test entities in
+/// isolation without relying on a global event dispatcher.
+/// </para>
+/// <para>
+/// When it’s time to persist changes, such as in EF Core, we hook into the <c>SaveChanges</c> method. Just before committing
+/// the transaction, we dispatch the recorded domain events to their respective handlers. By separating the raising of domain
+/// events from their dispatching, we make the process clearer for developers and maintain transactional consistency.
+/// </para>
+/// <para>
+/// This design also offers flexibility. Events can be dispatched synchronously (e.g., within the same process) or
+/// asynchronously (e.g. by storing events as JSON for processing in an external system). By decoupling event raising from handler
+/// logic, the solution promotes simpler testing, easier maintenance, and a more robust event handling system.
+/// </para>
+/// <para>Additionally, this class provides support for customizable string representations of entity states.</para>
 /// </remarks>
-/// <seealso cref="IDomainEvent"/>
+/// <seealso cref="IDomainEventDispatcher"/>
+/// <seealso href="https://lostechies.com/jimmybogard/2014/05/13/a-better-domain-events-pattern/">A better domain events pattern</seealso>
 [DebuggerDisplay($"{{{nameof(ToString)}(\"d\")}}")]
+[SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global", Justification = "Public base class.")]
 public abstract class Entity : IFormattable
 {
 	#region Nested Type: FormatStrings
@@ -159,23 +179,56 @@ public abstract class Entity : IFormattable
 
 	#endregion
 
-	/// <summary>Gets a collection of domain events that have occurred on the entity.</summary>
-	public virtual IEnumerable<IDomainEvent> Events => _events ?? Enumerable.Empty<IDomainEvent>();
+	/// <summary>Represents a queue of domain events that have occurred on the entity but are pending dispatch.</summary>
+	/// <remarks>The domain events in this queue have not been dispatched yet.</remarks>
+	protected internal virtual IEnumerable<IDomainEvent> Events => _events ?? Enumerable.Empty<IDomainEvent>();
 
-	/// <summary>Adds a domain event to the entity.</summary>
-	/// <param name="domainEvent">The domain event to add.</param>
-	// TODO raise is not intention revealing
-	protected virtual void Raise<T>(T domainEvent)
+	/// <summary>Queues one or more domain events within the entity for future dispatch.</summary>
+	/// <typeparam name="T">The type of the domain events being queued, which must implement <see cref="IDomainEvent"/>.</typeparam>
+	/// <param name="domainEvents">
+	/// The domain events to be queued. These events are added to the entity's internal event queue for
+	/// dispatch at a later time.
+	/// </param>
+	/// <remarks>
+	/// This method delays the dispatch of events and their handler invocation. Instead, it enqueues the events for deferred
+	/// processing, typically during a persistence operation, such as in a <c>DbContext</c>.
+	/// </remarks>
+	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
+	[SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
+	protected internal virtual void EnqueueDomainEvent<T>(params T[] domainEvents)
 		where T : IDomainEvent
 	{
-		(_events ??= new List<IDomainEvent>(capacity: 1)).Add(domainEvent);
+		if (domainEvents is null || domainEvents.Length == 0) return;
+		var queue = _events ??= new Queue<IDomainEvent>(capacity: 1);
+		foreach (var domainEvent in domainEvents) queue.Enqueue(domainEvent);
 	}
 
-	/// <summary>Clears the domain events after they have been handled or persisted.</summary>
-	protected internal virtual void ClearEvents()
+	/// <summary>Dequeues all domain events from the dispatch queue, returning them and clearing the queue.</summary>
+	/// <returns>An array of domain events that were in the queue. If the queue is empty, returns an empty array.</returns>
+	/// <remarks>
+	/// This method retrieves and removes all domain events from the internal queue, typically after they have been prepared
+	/// for dispatch or further processing.
+	/// </remarks>
+	protected internal virtual IDomainEvent[] DequeueDomainEvents()
 	{
+		var events = Events.ToArray();
 		_events?.Clear();
+		return events;
 	}
+
+	/// <summary>
+	/// Enables the definition of custom logic to execute upon entity creation, typically triggered when added to a
+	/// <c>DbContext</c>.
+	/// </summary>
+	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
+	protected virtual void OnCreated() { }
+
+	/// <summary>
+	/// Enables the definition of custom logic to execute upon entity deletion, typically triggered when removed from a
+	/// <c>DbContext</c>.
+	/// </summary>
+	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
+	protected virtual void OnDeleted() { }
 
 	/// <summary>
 	/// Generates a string representation of the current instance's fields and properties by appending their names and values
@@ -213,10 +266,8 @@ public abstract class Entity : IFormattable
 	/// </code>
 	/// </example>
 	/// <seealso cref="Entity.FormatStrings"/>
-	[SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
-	[SuppressMessage("ReSharper", "GrammarMistakeInComment")]
-	[SuppressMessage("ReSharper", "UnusedParameter.Global")]
+	[SuppressMessage("ReSharper", "UnusedParameter.Global", Justification = "Public API.")]
 	protected internal abstract bool PrintMembers(StringBuilder stringBuilder, string format, IFormatProvider? formatProvider);
 
-	private List<IDomainEvent>? _events;
+	private Queue<IDomainEvent>? _events;
 }

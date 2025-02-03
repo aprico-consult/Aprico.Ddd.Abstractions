@@ -21,12 +21,100 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Aprico.AutoFixture.Xunit2;
+using AutoFixture.AutoMoq;
 using Moq;
 
 namespace Aprico.Ddd.Abstractions;
 
 public abstract class EntityFixture
 {
+	#region Nested Type: DequeueDomainEvents
+
+	public class DequeueDomainEvents : EntityFixture
+	{
+		[Theory]
+		[AutoData<AutoMoqCustomization>]
+		public void ReturnsArrayOfQueuedDomainEventsAndClearsQueue(Entity sut, IDomainEvent event1, IDomainEvent event2)
+		{
+			sut.EnqueueDomainEvent(event1, event2);
+			sut.Events.Should()
+				.HaveCount(expected: 2);
+			sut.DequeueDomainEvents()
+				.Should()
+				.BeEquivalentTo([event1, event2]);
+			sut.Events.Should()
+				.BeEmpty();
+		}
+
+		[Theory]
+		[AutoData<AutoMoqCustomization>]
+		public void ReturnsEmptyArrayIfNoQueuedDomainEvents(Entity sut)
+		{
+			sut.DequeueDomainEvents()
+				.Should()
+				.BeEmpty();
+		}
+	}
+
+	#endregion
+
+	#region Nested Type: EnqueueDomainEvent
+
+	public class EnqueueDomainEvent : EntityFixture
+	{
+		[Theory]
+		[AutoData<AutoMoqCustomization>]
+		public void CanEnqueueMultipleEvents(Entity sut, IDomainEvent event1, IDomainEvent event2)
+		{
+			sut.Events.Should()
+				.HaveCount(expected: 0);
+			Invoking(() => sut.EnqueueDomainEvent(event1, event2))
+				.Should()
+				.NotThrow();
+			sut.Events.Should()
+				.HaveCount(expected: 2);
+		}
+
+		[Theory]
+		[AutoData<AutoMoqCustomization>]
+		public void CanEnqueueOneEvent(Entity sut, IDomainEvent @event)
+		{
+			sut.Events.Should()
+				.HaveCount(expected: 0);
+			Invoking(() => sut.EnqueueDomainEvent(@event))
+				.Should()
+				.NotThrow();
+			sut.Events.Should()
+				.HaveCount(expected: 1);
+		}
+
+		[Theory]
+		[AutoData<AutoMoqCustomization>]
+		public void DoesNotThrowWhenEnqueueingEmptyCollection(Entity sut)
+		{
+			Invoking(() => sut.EnqueueDomainEvent<IDomainEvent>())
+				.Should()
+				.NotThrow();
+			sut.Events.Should()
+				.HaveCount(expected: 0);
+		}
+
+		[Theory]
+		[AutoData<AutoMoqCustomization>]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void DoesNotThrowWhenEnqueueingNullEvent(Entity sut)
+		{
+			Invoking(() => sut.EnqueueDomainEvent<IDomainEvent>(null!))
+				.Should()
+				.NotThrow();
+			sut.Events.Should()
+				.HaveCount(expected: 0);
+		}
+	}
+
+	#endregion
+
 	#region Nested Type: FormatStringsFixture
 
 	public class FormatStringsFixture : EntityFixture
