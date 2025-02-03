@@ -1,13 +1,13 @@
 #region region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,7 +16,6 @@
 
 #endregion
 
-using System.Diagnostics.CodeAnalysis;
 using NodaTime;
 
 namespace Aprico.Ddd.Abstractions;
@@ -29,7 +28,6 @@ namespace Aprico.Ddd.Abstractions;
 /// A domain event describes something that has occurred within the domain and is of significance to the domain model. The
 /// <c>DomainEvent</c> abstract record provides a base for all domain events, including metadata such as a timestamp.
 /// </remarks>
-[SuppressMessage("ReSharper", "UnusedType.Global", Justification = "Public abstraction.")]
 public abstract record DomainEvent : IDomainEvent
 {
 	#region IDomainEvent Members
@@ -40,7 +38,6 @@ public abstract record DomainEvent : IDomainEvent
 	/// The timestamp captures when the domain event occurred. This may be used for auditing, sequencing, or other purposes
 	/// where the time of the event is important.
 	/// </remarks>
-	// TODO ?? why not an instant
 	public ZonedDateTime Timestamp { get; } = ClockProvider.Instance.UtcNow;
 
 	#endregion

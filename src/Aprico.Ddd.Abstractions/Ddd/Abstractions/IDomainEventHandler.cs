@@ -1,13 +1,13 @@
 #region region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-// 
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-// 
+//
 // http://www.apache.org/licenses/LICENSE-2.0
-// 
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 namespace Aprico.Ddd.Abstractions;
 
 /// <summary>Defines a contract for handling domain events in a domain-driven design (DDD) context.</summary>
-/// <typeparam name="T">The type of the domain event to handle. Must implement the <see cref="IDomainEvent"/> interface.</typeparam>
+/// <typeparam name="T">The type of the domain event to handle, which must implement the <see cref="IDomainEvent"/> interface.</typeparam>
 /// <remarks>
 /// Implement this interface to define asynchronous logic for processing specific domain events. Each implementation
 /// corresponds to a particular domain event type and specifies how the event should be handled (e.g., updating state, triggering
