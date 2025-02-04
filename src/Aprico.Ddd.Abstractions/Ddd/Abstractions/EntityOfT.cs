@@ -26,7 +26,6 @@ namespace Aprico.Ddd.Abstractions;
 /// <summary>Base class that defines the common properties for entities.</summary>
 /// <typeparam name="TKey">The type of the key for the entity.</typeparam>
 /// <seealso href="https://github.com/JonPSmith/EfCore.GenericEventRunner">EfCore.GenericEventRunner</seealso>
-[SuppressMessage("ReSharper", "MemberCanBeProtected.Global", Justification = "Public API.")]
 [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global", Justification = "Public API.")]
 public abstract class Entity<TKey> : Entity, IEquatable<Entity<TKey>>
 	where TKey : struct
@@ -97,11 +96,9 @@ public abstract class Entity<TKey> : Entity, IEquatable<Entity<TKey>>
 	}
 
 	/// <inheritdoc/>
-	[SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
-	[SuppressMessage("ReSharper", "BaseObjectGetHashCodeCallInGetHashCode")]
 	public override int GetHashCode()
 	{
-		// Use the object's runtime memory reference for a hash.
+		// use object's runtime memory reference for hash code
 		return RuntimeHelpers.GetHashCode(this);
 	}
 

@@ -48,4 +48,18 @@ public abstract class AggregateRoot<TKey> : Entity<TKey>
 	/// identifier is already known and needs to be assigned at the time of creation.
 	/// </remarks>
 	protected AggregateRoot(TKey id) : base(id) { }
+
+	/// <summary>Invoked when the aggregate root is added to a repository.</summary>
+	/// <remarks>
+	/// This method is called to notify that the aggregate root has been added or registered in a repository context. It may
+	/// be overridden in derived classes to provide custom behavior that should occur upon the addition to the repository.
+	/// </remarks>
+	protected internal virtual void OnAddedToRepository() { }
+
+	/// <summary>Invoked when the aggregate root is removed from the repository.</summary>
+	/// <remarks>
+	/// This method is called to notify that the aggregate root has been detached or removed from its associated repository.
+	/// It may be overridden in derived classes to provide custom behavior that should occur upon the removal operation.
+	/// </remarks>
+	protected internal virtual void OnRemovedFromRepository() { }
 }

@@ -66,7 +66,6 @@ public abstract class Entity : IFormattable
 	/// data consistently. It also ensures that only valid format strings are used through validation logic.
 	/// </remarks>
 	[SuppressMessage("Naming", "CA1707:Identifiers should not contain underscores")]
-	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Public API.")]
 	[SuppressMessage("ReSharper", "UnusedMember.Global")]
 	protected internal static class FormatStrings
 	{
@@ -179,6 +178,11 @@ public abstract class Entity : IFormattable
 
 	#endregion
 
+	/// <summary>Indicates whether the entity has any domain events queued for dispatching.</summary>
+	[SuppressMessage("Performance", "CA1860:Avoid using Enumerable.Any() extension method")]
+	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
+	public bool HasQueuedDomainEvents => _events?.Any() ?? false;
+
 	/// <summary>Represents a queue of domain events that have occurred on the entity but are pending dispatch.</summary>
 	/// <remarks>The domain events in this queue have not been dispatched yet.</remarks>
 	protected internal virtual IEnumerable<IDomainEvent> Events => _events ?? Enumerable.Empty<IDomainEvent>();
@@ -193,7 +197,6 @@ public abstract class Entity : IFormattable
 	/// This method delays the dispatch of events and their handler invocation. Instead, it enqueues the events for deferred
 	/// processing, typically during a persistence operation, such as in a <c>DbContext</c>.
 	/// </remarks>
-	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
 	[SuppressMessage("ReSharper", "ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract")]
 	protected internal virtual void EnqueueDomainEvent<T>(params T[] domainEvents)
 		where T : IDomainEvent
@@ -215,20 +218,6 @@ public abstract class Entity : IFormattable
 		_events?.Clear();
 		return events;
 	}
-
-	/// <summary>
-	/// Enables the definition of custom logic to execute upon entity creation, typically triggered when added to a
-	/// <c>DbContext</c>.
-	/// </summary>
-	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
-	protected virtual void OnCreated() { }
-
-	/// <summary>
-	/// Enables the definition of custom logic to execute upon entity deletion, typically triggered when removed from a
-	/// <c>DbContext</c>.
-	/// </summary>
-	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
-	protected virtual void OnDeleted() { }
 
 	/// <summary>
 	/// Generates a string representation of the current instance's fields and properties by appending their names and values
