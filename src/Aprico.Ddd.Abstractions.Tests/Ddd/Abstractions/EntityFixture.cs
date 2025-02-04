@@ -92,11 +92,11 @@ public abstract class EntityFixture
 		}
 
 		[Fact]
-		public void GetHashCodeReturnsIdHasCodeIfEntityIsNotNew()
+		public void GetHashCodeReturnsBaseObjectHasCodeIfEntityIsNotNew()
 		{
 			var id = Guid.NewGuid();
 			var sut = new DummyEntity(id);
-			var hashCode = id.GetHashCode();
+			var hashCode = RuntimeHelpers.GetHashCode(sut);
 
 			sut.IsNew.Should()
 				.BeFalse();

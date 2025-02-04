@@ -23,14 +23,8 @@ using System.Text;
 
 namespace Aprico.Ddd.Abstractions;
 
-/// <summary>
-/// Base class that defines the common properties for entities. Provide also a domain event implementation thanks to the
-/// EfCore.GenericEventRunner package.
-/// </summary>
-/// <typeparam name="TKey">
-/// The type of the key for the entity. Preferably <see cref="System.Int64"/> or <see cref="System.Int32"/>
-/// for performance reasons.
-/// </typeparam>
+/// <summary>Base class that defines the common properties for entities.</summary>
+/// <typeparam name="TKey">The type of the key for the entity.</typeparam>
 /// <seealso href="https://github.com/JonPSmith/EfCore.GenericEventRunner">EfCore.GenericEventRunner</seealso>
 [SuppressMessage("ReSharper", "MemberCanBeProtected.Global", Justification = "Public API.")]
 [SuppressMessage("ReSharper", "VirtualMemberNeverOverridden.Global", Justification = "Public API.")]
@@ -107,21 +101,15 @@ public abstract class Entity<TKey> : Entity, IEquatable<Entity<TKey>>
 	[SuppressMessage("ReSharper", "BaseObjectGetHashCodeCallInGetHashCode")]
 	public override int GetHashCode()
 	{
-		// Use the object's runtime memory reference for a hash when no other relevant properties are present.
-		// This approach guarantees uniqueness during runtime, but won't result in consistent hash codes across different executions of the program.
-		return !IsNew && _tempHashValue == 0
-			? Id.GetHashCode()
-			: GetTransientHashCode();
-
-		int GetTransientHashCode() => _tempHashValue == 0
-			? _tempHashValue = RuntimeHelpers.GetHashCode(this)
-			: _tempHashValue;
+		// Use the object's runtime memory reference for a hash.
+		return RuntimeHelpers.GetHashCode(this);
 	}
 
 	#endregion
 
 	#region Base Class Member Overrides
 
+	/// <inheritdoc/>
 	[SuppressMessage("Design", "CA1062:Validate arguments of public methods")]
 	protected internal override bool PrintMembers(StringBuilder stringBuilder, string format, IFormatProvider? formatProvider)
 	{
@@ -138,10 +126,11 @@ public abstract class Entity<TKey> : Entity, IEquatable<Entity<TKey>>
 	/// context. It is frequently assigned by the database or another data source when the entity is persisted.
 	/// </remarks>
 	/// <value>A value of type <c>Guid</c> (or other type, if applicable) that represents the entity's unique identifier.</value>
+	[SuppressMessage("ReSharper", "UnusedMember.Global", Justification = "Public API.")]
 	public virtual TKey Id
 	{
 		get => _id;
-		set => _id = value;
+		protected set => _id = value;
 	}
 
 	/// <summary>Gets a value indicating whether the entity is new and has not been persisted yet.</summary>
@@ -151,16 +140,8 @@ public abstract class Entity<TKey> : Entity, IEquatable<Entity<TKey>>
 	/// database.
 	/// </remarks>
 	/// <value><c>true</c> if the entity is new (its <c>Id</c> equals the default value for <c>TKey</c>); otherwise, <c>false</c>.</value>
+	[SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
 	public virtual bool IsNew => Equals(Id, default(TKey));
 
-	/// <summary>Executes custom logic when the entity is deleted.</summary>
-	/// <remarks>
-	/// Override this method in a derived class to implement specific tasks or operations that should occur when the entity is
-	/// deleted, such as releasing resources, logging, or triggering domain-specific behavior.
-	/// </remarks>
-	// TODO ?? why is it not called in this base class
-	public virtual void OnDeleted() { }
-
 	private TKey _id;
-	private int _tempHashValue;
 }
