@@ -21,6 +21,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Aprico.Ddd.Abstractions;
+using Aprico.Ddd.Extensions;
 using Aprico.Linq.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -48,7 +49,7 @@ public sealed class EntityDomainEventDispatcher : IDomainEventDispatcher
 	public Task DispatchEntityDomainEventsAsync(Entity entity, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(entity);
-		return entity.DequeueDomainEvents()
+		return this.DequeueEntityDomainEvents(entity)
 			.ForEachAsync(domainEvent => DispatchDomainEventAsync((dynamic) domainEvent, cancellationToken));
 	}
 
