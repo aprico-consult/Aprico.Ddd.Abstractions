@@ -21,6 +21,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Aprico.Ddd.Abstractions;
+using Aprico.Linq.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aprico.Ddd;
@@ -44,12 +45,11 @@ public sealed class EntityDomainEventDispatcher : IDomainEventDispatcher
 	#region IDomainEventDispatcher Members
 
 	/// <inheritdoc/>
-	public async Task DispatchEntityDomainEventsAsync(Entity entity, CancellationToken cancellationToken = default)
+	public Task DispatchEntityDomainEventsAsync(Entity entity, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(entity);
-		foreach (var domainEvent in entity.DequeueDomainEvents())
-			await DispatchDomainEventAsync((dynamic) domainEvent, cancellationToken)
-				.ConfigureAwait(false);
+		return entity.DequeueDomainEvents()
+			.ForEachAsync(domainEvent => DispatchDomainEventAsync((dynamic) domainEvent, cancellationToken));
 	}
 
 	#endregion
@@ -66,15 +66,12 @@ public sealed class EntityDomainEventDispatcher : IDomainEventDispatcher
 	/// This method uses the dynamic type system to resolve and invoke the correct handler for the specified type of domain
 	/// event. It ensures that all registered handlers for the event are executed in sequence.
 	/// </remarks>
-	/// <exception cref="ArgumentNullException">Thrown when the <paramref name="domainEvent"/> is <c>null</c>.</exception>
 	/// <seealso href="https://en.wikipedia.org/wiki/Double_dispatch#Double_dispatch_in_C#">Double dispatch in C#</seealso>
-	private async ValueTask DispatchDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
+	private Task DispatchDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
 		where T : IDomainEvent
 	{
-		var handlers = _serviceProvider.GetServices<IDomainEventHandler<T>>();
-		foreach (var handler in handlers)
-			await handler.HandleAsync(domainEvent, cancellationToken)
-				.ConfigureAwait(continueOnCapturedContext: false);
+		return _serviceProvider.GetServices<IDomainEventHandler<T>>()
+			.ForEachAsync(handler => handler.HandleAsync(domainEvent, cancellationToken));
 	}
 
 	/// <summary>The <see cref="IServiceProvider"/> used to resolve domain event handlers.</summary>
