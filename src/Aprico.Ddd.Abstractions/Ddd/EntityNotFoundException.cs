@@ -44,26 +44,26 @@ public class EntityNotFoundException : Exception
 		where TEntity : Entity<TKey>
 		where TKey : struct
 	{
-		if (entity is null) Throw(entity, id);
+		if (entity is not null) return;
+		throw id.HasValue
+			? new EntityNotFoundException($"Entity '{typeof(TEntity).Name} {{ {nameof(Entity<TKey>.Id)}: {id.Value} }}' not found.")
+			: new EntityNotFoundException($"Entity '{typeof(TEntity).Name}' not found.");
 	}
 
 	/// <summary>Throws an <see cref="EntityNotFoundException"/> for the specified entity type.</summary>
 	/// <typeparam name="TEntity">The type of the entity.</typeparam>
 	/// <typeparam name="TKey">The type of the entity's key.</typeparam>
-	/// <param name="_">The entity being referenced.</param>
 	/// <param name="id">The key associated with the entity.</param>
 	/// <exception cref="EntityNotFoundException">
 	/// Always thrown to indicate that the entity of type <typeparamref name="TEntity"/>
 	/// could not be found. If the <paramref name="id"/> is provided, the exception message will include the Id.
 	/// </exception>
 	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Public API.")]
-	public static void Throw<TEntity, TKey>([NotNull] TEntity? _, TKey? id = null)
+	public static void Throw<TEntity, TKey>(TKey? id = null)
 		where TEntity : Entity<TKey>
 		where TKey : struct
 	{
-		throw id.HasValue
-			? new EntityNotFoundException($"Entity '{nameof(TEntity)}' {{ {nameof(Entity<TKey>.Id)}: '{id.Value}' }} not found.")
-			: new EntityNotFoundException($"Entity '{nameof(TEntity)}' not found.");
+		ThrowIfNull<TEntity, TKey>(entity: null, id);
 	}
 
 	/// <summary>Initializes a new instance of the <see cref="EntityNotFoundException"/> class with default values.</summary>
