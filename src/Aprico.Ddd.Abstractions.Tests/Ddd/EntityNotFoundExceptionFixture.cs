@@ -41,6 +41,15 @@ public abstract class EntityNotFoundExceptionFixture
 		}
 
 		[Fact]
+		public void ThrowsMessageWithMemberMessage()
+		{
+			Invoking(static () => EntityNotFoundException.Throw<DummyEntity, Guid>("Number: 123456"))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity { Number: 123456 }' not found.");
+		}
+
+		[Fact]
 		public void ThrowsMessageWithoutId()
 		{
 			Invoking(static () => EntityNotFoundException.Throw<DummyEntity, Guid>())
@@ -63,6 +72,17 @@ public abstract class EntityNotFoundExceptionFixture
 			Invoking(() => EntityNotFoundException.ThrowIfNull<DummyEntity, Guid>(entity))
 				.Should()
 				.NotThrow();
+		}
+
+		[Fact]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void ThrowsMessageWithMemberMessage()
+		{
+			DummyEntity entity = null!;
+			Invoking(() => EntityNotFoundException.ThrowIfNull<DummyEntity, Guid>(entity, "Number: 123456"))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity { Number: 123456 }' not found.");
 		}
 
 		[Theory]
