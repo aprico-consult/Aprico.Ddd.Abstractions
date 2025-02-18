@@ -19,7 +19,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Aprico.Ddd.Abstractions;
-using AutoFixture.Xunit2;
 
 namespace Aprico.Ddd;
 
@@ -30,20 +29,11 @@ public abstract class EntityNotFoundExceptionFixture
 	[SuppressMessage("Naming", "CA1716:Identifiers should not match keywords")]
 	public class Throw : EntityNotFoundExceptionFixture
 	{
-		[Theory]
-		[AutoData]
-		public void ThrowsMessageWithId(Guid id)
-		{
-			Invoking(() => EntityNotFoundException.Throw<DummyEntity, Guid>(id))
-				.Should()
-				.Throw<EntityNotFoundException>()
-				.WithMessage($"Entity 'DummyEntity {{ Id: {id:D} }}' not found.");
-		}
-
 		[Fact]
 		public void ThrowsMessageWithMemberMessage()
 		{
-			Invoking(static () => EntityNotFoundException.Throw<DummyEntity, Guid>("Number: 123456"))
+			DummyEntity? entity = null;
+			Invoking(() => EntityNotFoundException.Throw(entity, "Number: 123456"))
 				.Should()
 				.Throw<EntityNotFoundException>()
 				.WithMessage("Entity 'DummyEntity { Number: 123456 }' not found.");
@@ -52,7 +42,8 @@ public abstract class EntityNotFoundExceptionFixture
 		[Fact]
 		public void ThrowsMessageWithoutId()
 		{
-			Invoking(static () => EntityNotFoundException.Throw<DummyEntity, Guid>())
+			DummyEntity? entity = null;
+			Invoking(() => EntityNotFoundException.Throw(entity))
 				.Should()
 				.Throw<EntityNotFoundException>()
 				.WithMessage("Entity 'DummyEntity' not found.");
@@ -69,31 +60,31 @@ public abstract class EntityNotFoundExceptionFixture
 		public void DoesNotThrowWhenNotNull()
 		{
 			DummyEntity entity = new();
-			Invoking(() => EntityNotFoundException.ThrowIfNull<DummyEntity, Guid>(entity))
+			Invoking(() => EntityNotFoundException.ThrowIfNull(entity))
 				.Should()
 				.NotThrow();
 		}
 
 		[Fact]
 		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
-		public void ThrowsMessageWithMemberMessage()
+		public void ThrowsWhenNullWithMemberMessage()
 		{
 			DummyEntity entity = null!;
-			Invoking(() => EntityNotFoundException.ThrowIfNull<DummyEntity, Guid>(entity, "Number: 123456"))
+			Invoking(() => EntityNotFoundException.ThrowIfNull(entity, "Number: 123456"))
 				.Should()
 				.Throw<EntityNotFoundException>()
 				.WithMessage("Entity 'DummyEntity { Number: 123456 }' not found.");
 		}
 
-		[Theory]
-		[AutoData]
+		[Fact]
 		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
-		public void ThrowsWhenNull(Guid id)
+		public void ThrowsWhenNullWithoutMemberMessage()
 		{
 			DummyEntity entity = null!;
-			Invoking(() => EntityNotFoundException.ThrowIfNull<DummyEntity, Guid>(entity, id))
+			Invoking(() => EntityNotFoundException.ThrowIfNull(entity))
 				.Should()
-				.Throw<EntityNotFoundException>();
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity' not found.");
 		}
 	}
 

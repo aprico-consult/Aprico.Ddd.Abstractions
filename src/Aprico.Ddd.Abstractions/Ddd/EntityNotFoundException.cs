@@ -32,99 +32,43 @@ namespace Aprico.Ddd;
 public class EntityNotFoundException : Exception
 {
 	/// <summary>Throws an <see cref="EntityNotFoundException"/> if the specified entity is null.</summary>
-	/// <typeparam name="TEntity">The type of the entity.</typeparam>
-	/// <typeparam name="TKey">The type of the entity's key.</typeparam>
-	/// <param name="entity">The entity to check for null.</param>
-	/// <param name="id">The key associated with the entity.</param>
+	/// <typeparam name="TEntity">The type of the entity derived from the base Entity class.</typeparam>
+	/// <param name="entity">The entity to be checked for null. Must be of a type derived from Entity.</param>
+	/// <param name="memberMessage">Optional custom message providing additional context about the missing entity.</param>
 	/// <exception cref="EntityNotFoundException">
-	/// Thrown when the <paramref name="entity"/> is null. If the <paramref name="id"/> is
-	/// provided, the exception message will include the Id.
+	/// Thrown when the specified <paramref name="entity"/> is null. The exception message
+	/// will include the optional <paramref name="memberMessage"/> if provided.
 	/// </exception>
 	[SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
-	public static void ThrowIfNull<TEntity, TKey>([NotNull] TEntity? entity, TKey? id = null)
-		where TEntity : Entity<TKey>
-		where TKey : struct
+	public static void ThrowIfNull<TEntity>([NotNull] TEntity? entity, string? memberMessage = null)
+		where TEntity : Entity
 	{
 		if (entity is not null) return;
-		throw new EntityNotFoundException(BuildEntityNotFoundExceptionMessage<TEntity, TKey>(id));
-	}
-
-	/// <summary>Throws an <see cref="EntityNotFoundException"/> if the specified entity is null.</summary>
-	/// <typeparam name="TEntity">The type of the entity.</typeparam>
-	/// <typeparam name="TKey">The type of the entity's key.</typeparam>
-	/// <param name="entity">The entity to check for null.</param>
-	/// <param name="memberMessage">An optional message to include additional details in the exception.</param>
-	/// <exception cref="EntityNotFoundException">
-	/// Thrown when the <paramref name="entity"/> is null. The exception message includes the
-	/// provided <paramref name="memberMessage"/> if supplied.
-	/// </exception>
-	[SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
-	public static void ThrowIfNull<TEntity, TKey>([NotNull] TEntity? entity, string? memberMessage)
-		where TEntity : Entity<TKey>
-		where TKey : struct
-	{
-		if (entity is not null) return;
-		throw new EntityNotFoundException(BuildEntityNotFoundExceptionMessage<TEntity, TKey>(memberMessage));
-	}
-
-	/// <summary>Throws an <see cref="EntityNotFoundException"/> for the specified entity type.</summary>
-	/// <typeparam name="TEntity">The type of the entity.</typeparam>
-	/// <typeparam name="TKey">The type of the entity's key.</typeparam>
-	/// <param name="id">The key associated with the entity.</param>
-	/// <exception cref="EntityNotFoundException">
-	/// Always thrown to indicate that the entity of type <typeparamref name="TEntity"/>
-	/// could not be found. If the <paramref name="id"/> is provided, the exception message will include the Id.
-	/// </exception>
-	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Public API.")]
-	public static void Throw<TEntity, TKey>(TKey? id = null)
-		where TEntity : Entity<TKey>
-		where TKey : struct
-	{
-		ThrowIfNull<TEntity, TKey>(entity: null, id);
+		Throw(entity, memberMessage);
 	}
 
 	/// <summary>Throws an <see cref="EntityNotFoundException"/> for the specified entity type with an optional custom message.</summary>
-	/// <typeparam name="TEntity">The type of the entity.</typeparam>
-	/// <typeparam name="TKey">The type of the entity's key.</typeparam>
-	/// <param name="memberMessage">An optional custom message providing additional context about the entity not being found.</param>
+	/// <typeparam name="TEntity">The type of the entity derived from the base Entity class.</typeparam>
+	/// <param name="entity">The entity to be checked for null. Must be of a type derived from Entity.</param>
+	/// <param name="memberMessage">Optional custom message providing additional context about the missing entity.</param>
 	/// <exception cref="EntityNotFoundException">
 	/// Always thrown, indicating that an entity of the specified type could not be found. If
 	/// the <paramref name="memberMessage"/> is provided, it will be included in the exception message.
 	/// </exception>
-	/// <remarks>
-	/// This method is useful for explicitly signaling that an expected entity was not located, with the ability to provide
-	/// custom context through the <paramref name="memberMessage"/>.
-	/// </remarks>
 	[SuppressMessage("ReSharper", "MemberCanBePrivate.Global", Justification = "Public API.")]
-	public static void Throw<TEntity, TKey>(string? memberMessage)
-		where TEntity : Entity<TKey>
-		where TKey : struct
-	{
-		ThrowIfNull<TEntity, TKey>(entity: null, memberMessage);
-	}
-
-	private static string BuildEntityNotFoundExceptionMessage<TEntity, TKey>(TKey? id)
-		where TEntity : Entity<TKey>
-		where TKey : struct
-	{
-		return BuildEntityNotFoundExceptionMessage<TEntity, TKey>(
-			id.HasValue
-				? $"{nameof(Entity<TKey>.Id)}: {id.Value}"
-				: null);
-	}
-
-	private static string BuildEntityNotFoundExceptionMessage<TEntity, TKey>(string? memberMessage)
-		where TEntity : Entity<TKey>
-		where TKey : struct
+	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "Required for generic type resolution.")]
+	[SuppressMessage("ReSharper", "UnusedParameter.Global", Justification = "Required for generic type resolution.")]
+	public static void Throw<TEntity>([NotNull] TEntity? entity, string? memberMessage = null)
+		where TEntity : Entity
 	{
 		var builder = new StringBuilder().Append("Entity '")
 			.Append(typeof(TEntity).Name);
-		if (!string.IsNullOrEmpty(memberMessage))
+		if (memberMessage is not null)
 			builder.Append(" { ")
 				.Append(memberMessage)
 				.Append(" }");
 		builder.Append("' not found.");
-		return builder.ToString();
+		throw new EntityNotFoundException(builder.ToString());
 	}
 
 	/// <summary>Initializes a new instance of the <see cref="EntityNotFoundException"/> class with default values.</summary>
