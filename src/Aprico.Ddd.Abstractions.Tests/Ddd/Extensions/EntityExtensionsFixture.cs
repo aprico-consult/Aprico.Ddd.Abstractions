@@ -46,6 +46,18 @@ public class EntityExtensionsFixture
 	[Theory]
 	[AutoData]
 	[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+	public void ThrowsWhenNullWithGeneratedMemberMessage(Guid id)
+	{
+		DummyEntity entity = null!;
+		Invoking(() => entity.UnlessEntityIsNotFound(() => $"Id: {id}"))
+			.Should()
+			.Throw<EntityNotFoundException>()
+			.WithMessage($"Entity 'DummyEntity {{ Id: {id} }}' not found.");
+	}
+
+	[Theory]
+	[AutoData]
+	[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
 	public void ThrowsWhenNullWithMemberMessage(Guid id)
 	{
 		DummyEntity entity = null!;

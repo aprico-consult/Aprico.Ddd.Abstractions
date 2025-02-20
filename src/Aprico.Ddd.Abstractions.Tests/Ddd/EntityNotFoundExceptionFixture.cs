@@ -1,13 +1,13 @@
 #region region Copyright & License
 
 // Copyright © 2024 - 2025 Aprico Consultants
-//
+// 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-//
+// 
 // http://www.apache.org/licenses/LICENSE-2.0
-//
+// 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -30,6 +30,16 @@ public abstract class EntityNotFoundExceptionFixture
 	public class Throw : EntityNotFoundExceptionFixture
 	{
 		[Fact]
+		public void ThrowsMessageWithGeneratedMemberMessage()
+		{
+			DummyEntity? entity = null;
+			Invoking(() => EntityNotFoundException.Throw(entity, static () => "Number: 123456"))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity { Number: 123456 }' not found.");
+		}
+
+		[Fact]
 		public void ThrowsMessageWithMemberMessage()
 		{
 			DummyEntity? entity = null;
@@ -40,7 +50,29 @@ public abstract class EntityNotFoundExceptionFixture
 		}
 
 		[Fact]
-		public void ThrowsMessageWithoutId()
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void ThrowsMessageWithNullGeneratedMemberMessage()
+		{
+			DummyEntity? entity = null;
+			Invoking(() => EntityNotFoundException.Throw(entity, static () => null!))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity' not found.");
+		}
+
+		[Fact]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void ThrowsMessageWithNullMemberMessageFactory()
+		{
+			DummyEntity? entity = null;
+			Invoking(() => EntityNotFoundException.Throw(entity, ((Func<string?>?) null)!))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity' not found.");
+		}
+
+		[Fact]
+		public void ThrowsMessageWithoutMemberMessage()
 		{
 			DummyEntity? entity = null;
 			Invoking(() => EntityNotFoundException.Throw(entity))
@@ -63,6 +95,39 @@ public abstract class EntityNotFoundExceptionFixture
 			Invoking(() => EntityNotFoundException.ThrowIfNull(entity))
 				.Should()
 				.NotThrow();
+		}
+
+		[Fact]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void ThrowsMessageWithGeneratedMemberMessage()
+		{
+			DummyEntity entity = null!;
+			Invoking(() => EntityNotFoundException.ThrowIfNull(entity, static () => "Number: 123456"))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity { Number: 123456 }' not found.");
+		}
+
+		[Fact]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void ThrowsMessageWithNullGeneratedMemberMessage()
+		{
+			DummyEntity entity = null!;
+			Invoking(() => EntityNotFoundException.ThrowIfNull(entity, static () => null!))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity' not found.");
+		}
+
+		[Fact]
+		[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]
+		public void ThrowsMessageWithNullMemberMessageFactory()
+		{
+			DummyEntity entity = null!;
+			Invoking(() => EntityNotFoundException.ThrowIfNull(entity, ((Func<string?>?) null)!))
+				.Should()
+				.Throw<EntityNotFoundException>()
+				.WithMessage("Entity 'DummyEntity' not found.");
 		}
 
 		[Fact]
