@@ -16,21 +16,17 @@
 
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading.Tasks;
+using Aprico.Ddd.Abstractions;
 
-namespace Aprico.Linq.Extensions;
+namespace Aprico.Ddd.Extensions;
 
-[SuppressMessage("ReSharper", "MemberCanBeInternal")]
-// TODO to move to a more general purpose assembly
-public static class EnumerableExtensions
+[SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
+public static class EntityExtensions
 {
-	public static async Task ForEachAsync<T>(this IEnumerable<T> source, Func<T, Task> action)
+	public static void UnlessEntityIsNotFound<TEntity>(this TEntity? entity, string? memberMessage = null)
+		where TEntity : Entity
 	{
-		ArgumentNullException.ThrowIfNull(source);
-		ArgumentNullException.ThrowIfNull(action);
-		foreach (var item in source) await action(item);
+		EntityNotFoundException.ThrowIfNull(entity, memberMessage);
 	}
 }
