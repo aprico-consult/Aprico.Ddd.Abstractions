@@ -34,6 +34,15 @@ public class EntityExtensionsFixture
 			.NotThrow();
 	}
 
+	[Fact]
+	public void ReturnsEntityWhenNotNull()
+	{
+		DummyEntity entity = new();
+		entity.UnlessEntityIsNotFound()
+			.Should()
+			.BeSameAs(entity);
+	}
+
 	[Theory]
 	[AutoData]
 	[SuppressMessage("ReSharper", "NullableWarningSuppressionIsUsed")]

@@ -24,9 +24,11 @@ namespace Aprico.Ddd.Extensions;
 [SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public API.")]
 public static class EntityExtensions
 {
-	public static void UnlessEntityIsNotFound<TEntity>(this TEntity? entity, string? memberMessage = null)
+	[return: NotNull]
+	public static TEntity UnlessEntityIsNotFound<TEntity>([NotNull] this TEntity? entity, string? memberMessage = null)
 		where TEntity : Entity
 	{
 		EntityNotFoundException.ThrowIfNull(entity, memberMessage);
+		return entity;
 	}
 }
