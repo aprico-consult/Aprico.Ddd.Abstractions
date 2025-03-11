@@ -33,6 +33,7 @@
       <PackageReference Include="Aprico.NodaTime"/>
       <PackageReference Include="Be.Stateless.Extensions"/>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions"/>
+      <PackageReference Include="Microsoft.SourceLink.GitHub"/>
       <PackageReference Include="NodaTime"/>
    </ItemGroup>
 
