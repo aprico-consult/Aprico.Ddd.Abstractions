@@ -18,7 +18,7 @@
 
 using NodaTime;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>
 /// Represents the base implementation of a domain event, <see cref="IDomainEvent"/>, in a domain-driven design (DDD)

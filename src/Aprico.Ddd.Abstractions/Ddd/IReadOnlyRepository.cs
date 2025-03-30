@@ -23,7 +23,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>Provides a read-only repository abstraction for managing and querying aggregate root entities.</summary>
 /// <typeparam name="TEntity">The type of the entity being managed.</typeparam>

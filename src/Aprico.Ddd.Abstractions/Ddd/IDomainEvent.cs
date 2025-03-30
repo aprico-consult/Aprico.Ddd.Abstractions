@@ -19,7 +19,7 @@
 using System.Diagnostics.CodeAnalysis;
 using NodaTime;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>
 /// This is a marker interface to be used as constraint when defining generic types and methods that operate on domain

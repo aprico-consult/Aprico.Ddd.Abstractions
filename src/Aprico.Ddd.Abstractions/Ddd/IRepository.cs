@@ -20,7 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>Represents a generic repository interface for managing aggregate root entities.</summary>
 /// <typeparam name="TEntity">The type of the aggregate root entity.</typeparam>

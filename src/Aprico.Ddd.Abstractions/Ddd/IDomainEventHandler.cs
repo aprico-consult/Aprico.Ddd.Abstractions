@@ -20,7 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>Defines a contract for handling domain events in a domain-driven design (DDD) context.</summary>
 /// <typeparam name="T">The type of the domain event to handle, which must implement the <see cref="IDomainEvent"/> interface.</typeparam>

@@ -18,7 +18,6 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Aprico.Ddd.Abstractions;
 
 namespace Aprico.Ddd;
 

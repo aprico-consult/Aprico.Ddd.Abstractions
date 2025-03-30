@@ -20,7 +20,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>Provides an abstraction for dispatching domain events to their respective handlers.</summary>
 [SuppressMessage("ReSharper", "MemberCanBeInternal", Justification = "Public abstraction.")]

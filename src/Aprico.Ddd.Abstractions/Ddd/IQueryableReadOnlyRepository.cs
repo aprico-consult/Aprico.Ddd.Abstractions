@@ -19,7 +19,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>Represents a read-only queryable repository providing <see cref="IQueryable"/> access to aggregate root entities.</summary>
 /// <typeparam name="TEntity">The type of the aggregate root entity being managed.</typeparam>

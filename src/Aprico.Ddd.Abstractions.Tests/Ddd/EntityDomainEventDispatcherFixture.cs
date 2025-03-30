@@ -21,7 +21,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Aprico.AutoFixture.Xunit2;
-using Aprico.Ddd.Abstractions;
 using AutoFixture.AutoMoq;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;

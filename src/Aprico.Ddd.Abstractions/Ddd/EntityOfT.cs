@@ -21,7 +21,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Aprico.Ddd.Abstractions;
+namespace Aprico.Ddd;
 
 /// <summary>Base class that defines the common properties for entities.</summary>
 /// <typeparam name="TKey">The type of the key for the entity.</typeparam>
